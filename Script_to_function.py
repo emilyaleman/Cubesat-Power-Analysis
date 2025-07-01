@@ -2,11 +2,11 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from math import radians, degrees, pi, sin, cos, atan2
-from Me_vs_GMAT import JulianDateConverter
-from Me_vs_GMAT import SunPosition
-from Me_vs_GMAT import Orbit
-from Me_vs_GMAT import Satellite
-from Me_vs_GMAT import PowerAnalyzer
+from CoreScript import JulianDateConverter
+from CoreScript import SunPosition
+from CoreScript import Orbit
+from CoreScript import Satellite
+from CoreScript import PowerAnalyzer
 
 
 def run_simulation(
