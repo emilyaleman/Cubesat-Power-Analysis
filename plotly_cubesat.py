@@ -1,16 +1,17 @@
 import plotly.graph_objects as go
 import numpy as np
 
-def draw_interactive_cubesat(size_u=3, nadir_face='+Z', panel_faces=None):
-    if panel_faces is None:
-        panel_faces = []
+def draw_interactive_cubesat(size_u=3, nadir_face='+Z'):
+    # Define CubeSat dimensions (1U x 1U x size_u U)
+    width, depth, height = 1, 1, size_u
 
-    height = size_u
-    vertices = np.array([
-        [0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0],
-        [0, 0, height], [1, 0, height], [1, 1, height], [0, 1, height]
-    ], dtype=float)
+    # Define the 8 corner vertices
+    a, b, c, d = [0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]
+    e, f, g, h = [0, 0, height], [1, 0, height], [1, 1, height], [0, 1, height]
+    vertices = np.array([a, b, c, d, e, f, g, h])
+    x, y, z = vertices.T
 
+    # Triangular faces for each CubeSat panel
     faces = {
         '+Z': [[4, 5, 6], [4, 6, 7]],
         '-Z': [[0, 1, 2], [0, 2, 3]],
@@ -20,83 +21,82 @@ def draw_interactive_cubesat(size_u=3, nadir_face='+Z', panel_faces=None):
         '-Y': [[0, 1, 5], [0, 5, 4]]
     }
 
-    def get_color(face):
-        if face == nadir_face:
-            return 'red'
-        elif face in panel_faces:
-            return 'gold'
-        else:
-            return 'lightgray'
-
-    face_centers = {
-        '+Z': [0.5, 0.5, height], '-Z': [0.5, 0.5, 0],
-        '+X': [1, 0.5, height/2], '-X': [0, 0.5, height/2],
-        '+Y': [0.5, 1, height/2], '-Y': [0.5, 0, height/2]
-    }
-    directions = {
-        '+Z': [0, 0, 1], '-Z': [0, 0, -1],
-        '+X': [1, 0, 0], '-X': [-1, 0, 0],
-        '+Y': [0, 1, 0], '-Y': [0, -1, 0]
+    # Assign face colors (nadir face in red)
+    face_colors = {
+        '+Z': 'lightblue', '-Z': 'lightgray',
+        '+X': 'lightgreen', '-X': 'orange',
+        '+Y': 'violet', '-Y': 'pink'
     }
 
     fig = go.Figure()
 
-    # Draw faces
-    for face, tris in faces.items():
-        i, j, k = zip(*tris)
+    # Plot each face of the CubeSat
+    for face, triangles in faces.items():
+        i, j, k = zip(*triangles)
         fig.add_trace(go.Mesh3d(
-            x=vertices[:,0], y=vertices[:,1], z=vertices[:,2],
+            x=x, y=y, z=z,
             i=i, j=j, k=k,
-            color=get_color(face), opacity=0.5,
-            name=face, showscale=False
+            color='red' if face == nadir_face else face_colors[face],
+            opacity=0.5,
+            name=face,
+            showscale=False
         ))
 
-    # Add Nadir arrow
-    if nadir_face in face_centers:
-        start = np.array(face_centers[nadir_face], dtype=float)
-        direction = np.array(directions[nadir_face], dtype=float)
-        end = start + 0.6 * direction
-        label_pos = start + 0.75 * direction
+    # Define center points and outward vectors for each face
+    face_centers = {
+        '+Z': [0.5, 0.5, height],
+        '-Z': [0.5, 0.5, 0],
+        '+X': [1, 0.5, height / 2],
+        '-X': [0, 0.5, height / 2],
+        '+Y': [0.5, 1, height / 2],
+        '-Y': [0.5, 0, height / 2]
+    }
 
+    outward_directions = {
+        '+Z': [0, 0, 1],
+        '-Z': [0, 0, -1],
+        '+X': [1, 0, 0],
+        '-X': [-1, 0, 0],
+        '+Y': [0, 1, 0],
+        '-Y': [0, -1, 0]
+    }
+
+    # Draw Nadir vector arrow from selected face
+    if nadir_face in face_centers:
+        start = np.array(face_centers[nadir_face])
+        direction = np.array(outward_directions[nadir_face])
+        arrow_length = 0.8
+        end = start + arrow_length * direction
+        label_pos = start + 1.0 * direction
+
+        # Arrow (white line)
         fig.add_trace(go.Scatter3d(
-            x=[start[0], end[0]], y=[start[1], end[1]], z=[start[2], end[2]],
+            x=[start[0], end[0]],
+            y=[start[1], end[1]],
+            z=[start[2], end[2]],
             mode='lines',
-            line=dict(color='white', width=5),
+            line=dict(color='white', width=6),
             showlegend=False
         ))
+
+        # Label at tip
         fig.add_trace(go.Scatter3d(
             x=[label_pos[0]], y=[label_pos[1]], z=[label_pos[2]],
             mode='text',
             text=["Nadir"],
+            textposition="top center",
             textfont=dict(color='white', size=16),
             showlegend=False
         ))
 
-    # Rotate CubeSat so Nadir is down
-    up = np.array([0, 0, 1])
-    target = np.array(directions[nadir_face], dtype=float)
-    axis = np.cross(target, up)
-    angle = np.arccos(np.clip(np.dot(target, up), -1, 1))
-    if np.linalg.norm(axis) > 0 and angle != 0:
-        axis = axis / np.linalg.norm(axis)
-        ux, uy, uz = axis
-        c, s = np.cos(angle), np.sin(angle)
-        R = np.array([
-            [c + ux**2*(1-c), ux*uy*(1-c) - uz*s, ux*uz*(1-c) + uy*s],
-            [uy*ux*(1-c) + uz*s, c + uy**2*(1-c), uy*uz*(1-c) - ux*s],
-            [uz*ux*(1-c) - uy*s, uz*uy*(1-c) + ux*s, c + uz**2*(1-c)]
-        ])
-        rotated = vertices @ R.T
-        for trace in fig.data:
-            if isinstance(trace, go.Mesh3d):
-                trace.update(x=rotated[:,0], y=rotated[:,1], z=rotated[:,2])
-
-    # Layout
+    # Clean layout with zoomed-out view
     fig.update_layout(
         scene=dict(
-            xaxis=dict(visible=False), yaxis=dict(visible=False), zaxis=dict(visible=False),
-            aspectmode='manual', aspectratio=dict(x=1.2, y=1.2, z=1.5),
-            camera=dict(eye=dict(x=1.5, y=1.5, z=1.2)),
+            xaxis=dict(visible=False),
+            yaxis=dict(visible=False),
+            zaxis=dict(visible=False),
+            aspectmode='manual',
+            aspectratio=dict(x=1, y=1, z=size_u * 1.1),
             bgcolor='rgba(0,0,0,0)'
         ),
         margin=dict(l=0, r=0, t=0, b=0),
