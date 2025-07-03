@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
 from Script_to_function import run_simulation
-from DrawCubesat import draw_cubesat  # updated function with orientation
+from DrawCubesat import draw_cubesat 
+from plotly_cubesat import draw_interactive_cubesat 
 
 st.title("CubeSat Power Simulation")
 
@@ -16,14 +17,17 @@ velocity_face = '+X'
 acceleration_face = '+Z'
 
 # --- Show CubeSat with Orientation ---
-st.markdown("### CubeSat Orientation Preview")
-fig3d = draw_cubesat(
-    size_u=size_u,
-    nadir_face=nadir_face if nadir_condition else '+Z',
-    velocity_face=velocity_face,
-    acceleration_face=acceleration_face
-)
-st.pyplot(fig3d)
+# st.markdown("### CubeSat Orientation Preview")
+# fig3d = draw_cubesat(
+#     size_u=size_u,
+#     nadir_face=nadir_face if nadir_condition else '+Z',
+#     velocity_face=velocity_face,
+#     acceleration_face=acceleration_face
+# )
+# st.pyplot(fig3d)
+
+fig = draw_interactive_cubesat(size_u=size_u, nadir_face=nadir_face)
+st.plotly_chart(fig, use_container_width=True)
 
 # --- Attitude Angles ---
 pitch_deg = st.number_input("Pitch angle (degrees)", value=0.0)
