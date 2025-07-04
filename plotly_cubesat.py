@@ -78,7 +78,7 @@ def draw_interactive_cubesat(size_u=3, nadir_face='+Z'):
             y=[start[1], end[1]],
             z=[start[2], end[2]],
             mode='lines+text',
-            line=dict(color='black', width=6),
+            line=dict(color='white', width=6),
             text=['', '→ Nadir'],
             textposition='top center',
             textfont=dict(size=14),
