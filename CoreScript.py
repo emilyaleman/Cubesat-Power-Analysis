@@ -1,4 +1,246 @@
 
+import numpy as np
+import matplotlib.pyplot as plt
+from math import sin, cos, radians, degrees, pi, sqrt, acos, atan2
+
+# Julian Date Converter
+class JulianDateConverter:
+    @staticmethod
+    def to_julian_date(year, month, day_decimal):
+        if month <= 2:
+            year -= 1
+            month += 12
+        A = int(year / 100)
+        B = 2 - A + int(A / 4)
+        JD = int(365.25 * (year + 4716)) + int(30.6001 * (month + 1)) + day_decimal + B - 1524.5
+        return JD
+
+# Sun Position Model
+class SunPosition:
+
+    @staticmethod
+    def sun_vector_in_inertial(JD):
+        JT = (JD - 2451545.0) / 36525
+        L0 = 280.46646 + 36000.76983 * JT + 0.0003032 * JT**2
+        L0 %= 360
+        M = 357.52911 + 35999.05029 * JT - 0.0001537 * JT**2
+        M %= 360
+        M_rad = radians(M)
+        C = (1.914602 - 0.004817 * JT - 0.000014 * JT**2) * sin(M_rad) + \
+            (0.019993 - 0.000101 * JT) * sin(2 * M_rad) + \
+            0.00289 * sin(3 * M_rad)
+        Theta = L0 + C
+        V_s = M + C
+        Omega = 125.04 - 1934.136 * JT
+        lambda_s = Theta - 0.00569 - 0.00478 * sin(radians(Omega))
+        lambda_rad = radians(lambda_s)
+        epsilon0 = (23 + 26/60 + 21.448/3600) - ((46.8150 * JT) / 3600) - ((0.00059 * JT**2) / 3600) + ((0.001813 * JT**3) / 3600)
+        epsilon = epsilon0 + 0.00256 * cos(radians(Omega))
+        epsilon_rad = radians(epsilon)
+        alpha = atan2(cos(epsilon_rad) * sin(lambda_rad), cos(lambda_rad))
+        delta = np.arcsin(sin(epsilon_rad) * sin(lambda_rad))
+        xs = cos(delta) * cos(alpha)
+        ys = cos(delta) * sin(alpha)
+        zs = sin(delta)
+        return np.array([xs, ys, zs]), degrees(alpha) % 360
+
+    
+
+    @staticmethod
+    def inertial_to_LVLH(sun_vector_inertial, inclination_rad, RAAN_rad, mean_anomaly_rad):
+        C_Omega = np.array([
+            [cos(RAAN_rad), -sin(RAAN_rad), 0],
+            [sin(RAAN_rad),  cos(RAAN_rad), 0],
+            [0, 0, 1]
+        ])
+        C_i = np.array([
+            [1, 0, 0],
+            [0, cos(inclination_rad), -sin(inclination_rad)],
+            [0, sin(inclination_rad),  cos(inclination_rad)]
+        ])
+        C_theta = np.array([
+            [cos(mean_anomaly_rad), -sin(mean_anomaly_rad), 0],
+            [sin(mean_anomaly_rad),  cos(mean_anomaly_rad), 0],
+            [0, 0, 1]
+        ])
+        C_inertial_to_orbital = C_theta @ C_i @ C_Omega
+        C_inertial_to_LVLH = C_inertial_to_orbital.T
+        return C_inertial_to_LVLH @ sun_vector_inertial
+
+        #cambio de ejes de rotacion sera haciendo un transpose del primer plano a uno segundo 
+        #  C_2 = R_1^-T
+
+# Orbit Class
+class Orbit:
+    def __init__(self, altitude_km, inclination_deg=None, is_sso=False):
+        # self.earth_radius = 6378.0
+        # self.mu = 398600.0
+        # self.J2 = 1.08263e-3
+        # self.altitude = altitude_km
+        # self.sma = self.earth_radius + altitude_km
+        # self.period = 2 * pi * sqrt(self.sma**3 / self.mu)
+        # if is_sso:
+        #     n = 2 * pi / self.period
+        #     p = self.sma
+        #     factor = - (4 * pi**2 * p**2) / (365.2411984 * 24 * 3600 * 3 * self.J2 * self.earth_radius**2 * n)
+        #     self.inclination = acos(factor)
+        # else:
+        #     self.inclination = radians(inclination_deg)
+
+        # Constantes
+        self.Re = 6378.0               # Radio de la Tierra en km
+        self.mu = 398600.0             # Constante gravitacional
+        self.J2 = 1.08263e-3           # Oblatez ecuatorial
+        self.altitude = altitude_km
+        self.a = self.Re + altitude_km # Semi-eje mayor
+        self.n = sqrt(self.mu / self.a**3)  # Movimiento medio (rad/s)
+        self.is_sso = is_sso
+
+        # Si es órbita Sun-síncrona, calcula la inclinación automáticamente
+        if self.is_sso:
+            dRAAN_dt = 2 * pi / (365.2422 * 86400)  # Precesión solar deseada (rad/s)
+            factor = -2 * dRAAN_dt / (3 * self.J2 * (self.Re / self.a)**2 * self.n)
+
+            if abs(factor) > 1:
+                raise ValueError("No se puede calcular inclinación SSO para esta altitud.")
+
+            self.inclination = acos(factor)  # en radianes
+            print(f"Computed SSO inclination: {round(self.inclination * 180 / pi, 2)} degrees")
+
+        else:
+            self.inclination = radians(inclination_deg)
+
+        # periodo 
+        self.period = 2 * pi * sqrt(self.a**3 / self.mu)
+
+    def eclipse_window(self, sun_vector):
+        beta = pi/2 - acos(np.dot(sun_vector, [0, 0, 1]))   #is this equivalent?
+        Re = self.Re
+        h = self.altitude
+        rho = np.arcsin(Re / (Re + h))
+        try:
+            cos_phi_half = np.cos(rho) / np.cos(beta)
+        except ZeroDivisionError:
+            return None, None
+        if abs(cos_phi_half) > 1:
+            return None, None
+        phi_half = np.arccos(cos_phi_half)
+        eclipse_duration = 2 * phi_half * (self.period / (2 * pi))
+        start = (self.period - eclipse_duration) / 2
+        end = start + eclipse_duration
+
+        if self.is_sso:
+            print(f"Computed SSO inclination: {degrees(self.inclination):.2f} degrees")
+        return (start, end)
+    
+
+# Satellite Class
+class Satellite:
+    def __init__(self, size_u, panel_faces, occupancy, efficiency):
+        self.size_u = size_u
+        self.panel_faces = panel_faces
+        self.occupancy = occupancy
+        self.efficiency = efficiency
+        self.base_size = 0.1
+        self.panel_areas = self._calculate_panel_areas()
+
+    def _calculate_panel_areas(self):
+        x, y, z = self.base_size, self.base_size, self.base_size * self.size_u
+        areas = {
+            '+X': y * z, '-X': y * z,
+            '+Y': x * z, '-Y': x * z,
+            '+Z': x * y, '-Z': x * y
+        }
+        return {face: areas[face] * self.occupancy for face in self.panel_faces}
+
+
+class PowerAnalyzer:
+    SOLAR_CONSTANT = 1367
+
+    def __init__(self, satellite, orbit, RAAN_deg, sun_vector, nadir_condition, nadir_face, pitch_deg=0, yaw_deg=0, roll_deg=0):
+        self.sat = satellite
+        self.orbit = orbit
+        self.inclination = orbit.inclination
+        self.RAAN = np.radians(RAAN_deg)
+        self.sun_vector_inertial = sun_vector
+
+        self.base_normals = {
+            '+X': np.array([1, 0, 0]), '-X': np.array([-1, 0, 0]),
+            '+Y': np.array([0, 1, 0]), '-Y': np.array([0, -1, 0]),
+            '+Z': np.array([0, 0, 1]), '-Z': np.array([0, 0, -1])
+        }
+
+        if nadir_condition and nadir_face in self.base_normals:
+            v1 = self.base_normals[nadir_face]
+            v2 = np.array([0, 0, -1])  # Nadir en LVLH
+            R_nadir = self._rotation_matrix_from_vectors(v1, v2)
+        else:
+            R_nadir = np.identity(3)
+
+        # Attitude rotation matrices
+        pitch = radians(pitch_deg)
+        yaw = radians(yaw_deg)
+        roll = radians(roll_deg)
+
+        R_pitch = np.array([
+            [1, 0, 0],
+            [0, cos(pitch), -sin(pitch)],
+            [0, sin(pitch),  cos(pitch)]
+        ])
+
+        R_yaw = np.array([
+            [cos(yaw), 0, sin(yaw)],
+            [0, 1, 0],
+            [-sin(yaw), 0, cos(yaw)]
+        ])
+
+        R_roll = np.array([
+            [cos(roll), -sin(roll), 0],
+            [sin(roll),  cos(roll), 0],
+            [0, 0, 1]
+        ])
+
+        R_attitude = R_roll @ R_yaw @ R_pitch
+        R_total = R_attitude @ R_nadir
+
+        self.rotated_normals = {face: R_total @ vec for face, vec in self.base_normals.items()}
+
+    def _rotation_matrix_from_vectors(self, v1, v2):
+        v1 = v1 / np.linalg.norm(v1)
+        v2 = v2 / np.linalg.norm(v2)
+        cross = np.cross(v1, v2)
+        dot = np.dot(v1, v2)
+        if np.allclose(dot, 1.0):
+            return np.identity(3)
+        if np.allclose(dot, -1.0):
+            axis = np.array([1, 0, 0]) if not np.allclose(v1, [1, 0, 0]) else np.array([0, 1, 0])
+            return self._rotation_matrix_from_vectors(v1, -axis) @ self._rotation_matrix_from_vectors(-axis, v2)
+        skew = np.array([
+            [0, -cross[2], cross[1]],
+            [cross[2], 0, -cross[0]],
+            [-cross[1], cross[0], 0]
+        ])
+        return np.identity(3) + skew + skew @ skew * ((1 - dot) / (np.linalg.norm(cross) ** 2))
+
+    def sun_vector_in_LVLH(self, t):
+        M = (t / self.orbit.period) * 2 * np.pi
+        return SunPosition.inertial_to_LVLH(self.sun_vector_inertial, self.inclination, self.RAAN, M)
+
+    def compute_power(self, t):
+        sun_vector_b = self.sun_vector_in_LVLH(t)
+        total_power = 0
+        power_per_face = {}
+        for face in self.sat.panel_faces:
+            normal = self.rotated_normals[face]
+            cos_theta = np.dot(sun_vector_b, normal) / np.linalg.norm(sun_vector_b)
+            if cos_theta > 0:
+                power_face = self.SOLAR_CONSTANT * self.sat.panel_areas[face] * self.sat.efficiency * cos_theta
+                total_power += power_face
+                power_per_face[face] = power_face
+            else:
+                power_per_face[face] = 0
+        return total_power, power_per_face
+
 def gst_from_julian(JD):
     D = JD - 2451545.0
     GST = 280.46061837 + 360.98564736629 * D
@@ -191,11 +433,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-    
-
-
-    
-
