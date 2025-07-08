@@ -8,7 +8,7 @@ from CoreScript import Orbit
 from CoreScript import Satellite
 from CoreScript import PowerAnalyzer
 from CoreScript import compute_lat_lon
-from CoreScript import 
+from CoreScript import construct_rotation_from_rsn 
 
 
 def run_simulation(
