@@ -3,6 +3,32 @@ import numpy as np
 import matplotlib.pyplot as plt
 from math import sin, cos, radians, degrees, pi, sqrt, acos, atan2
 
+# Construct rotation matrix from body frame to RSN (Radial-velocity-normal) frame
+def construct_rotation_from_rsn(nadir_face, velocity_face):
+    base_normals = {
+        '+X': np.array([1, 0, 0]), '-X': np.array([-1, 0, 0]),
+        '+Y': np.array([0, 1, 0]), '-Y': np.array([0, -1, 0]),
+        '+Z': np.array([0, 0, 1]), '-Z': np.array([0, 0, -1])
+    }
+
+    if nadir_face not in base_normals or velocity_face not in base_normals:
+        raise ValueError("Invalid face provided for RSN alignment.")
+
+    # Define RSN frame: R = -x (nadir), S = +y (velocity), N = R x S
+    R = -np.array([1, 0, 0])
+    S = np.array([0, 1, 0])
+    N = np.cross(R, S)
+    RSN_matrix = np.column_stack((R, S, N))
+
+    # Define body frame based on user input
+    b_r = base_normals[nadir_face]
+    b_s = base_normals[velocity_face]
+    b_n = np.cross(b_r, b_s)
+    body_matrix = np.column_stack((b_r, b_s, b_n))
+
+    return RSN_matrix @ body_matrix.T
+
+
 # Julian Date Converter
 class JulianDateConverter:
     @staticmethod
@@ -170,12 +196,11 @@ class PowerAnalyzer:
             '+Z': np.array([0, 0, 1]), '-Z': np.array([0, 0, -1])
         }
 
-        if nadir_condition and nadir_face in self.base_normals:
-            v1 = self.base_normals[nadir_face]
-            v2 = np.array([0, 0, -1])  # Nadir en LVLH
-            R_nadir = self._rotation_matrix_from_vectors(v1, v2)
+        if nadir_condition and nadir_face and velocity_face:
+            R_rsn = construct_rotation_from_rsn(nadir_face, velocity_face)
         else:
-            R_nadir = np.identity(3)
+            R_rsn = np.identity(3)
+        R_total = R_attitude @ R_rsn
 
         # Attitude rotation matrices
         pitch = radians(pitch_deg)
@@ -287,10 +312,13 @@ def main():
     is_sso = input("Is this an SSO orbit? (Y/N): ").strip().upper() == 'Y'
     size_u = float(input("Enter CubeSat size (U): "))
     nadir_condition = input("Is the CubeSat Nadir Pointing? (Y/N): ").strip().upper() == 'Y'
+    
     if nadir_condition:
         nadir_face = input("Which face points to Nadir? (e.g. +Z): ").strip().upper()
+        velocity_face = input("Which face points to Velocity direction? (e.g. +X): ").strip().upper()
     else:
-        nadir_face = None  # or set a default, or skip reorientation
+        nadir_face, velocity_face = None, None
+
 
     # Angulos de actitud con respecto al nadir
     pitch_deg = float(input("Enter pitch angle in degrees (+X axis or default 0): ") or "0")
