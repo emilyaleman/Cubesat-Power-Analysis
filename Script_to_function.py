@@ -15,6 +15,7 @@ def run_simulation(
     size_u,
     nadir_condition,
     nadir_face,
+    velocity_face,  
     pitch_deg,
     yaw_deg,
     roll_deg,
@@ -51,6 +52,7 @@ def run_simulation(
         sun_vector=sun_vector,
         nadir_condition=nadir_condition,
         nadir_face=nadir_face,
+        velocity_face=velocity_face,
         pitch_deg=pitch_deg,
         yaw_deg=yaw_deg,
         roll_deg=roll_deg
