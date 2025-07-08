@@ -189,6 +189,7 @@ class PowerAnalyzer:
         self.inclination = orbit.inclination
         self.RAAN = np.radians(RAAN_deg)
         self.sun_vector_inertial = sun_vector
+        self.velocity_face = velocity_face
 
         self.base_normals = {
             '+X': np.array([1, 0, 0]), '-X': np.array([-1, 0, 0]),
