@@ -13,8 +13,8 @@ nadir_condition = st.checkbox("Is the CubeSat Nadir Pointing?", value=True)
 nadir_face = st.selectbox("Which face points to Nadir?", ['+X', '-X', '+Y', '-Y', '+Z', '-Z']) if nadir_condition else None
 
 # --- Orientation vectors (optional: make editable later) ---
-velocity_face = '+X'
-acceleration_face = '+Z'
+velocity_face = st.selectbox("Which face points in the velocity direction?", ['+X', '-X', '+Y', '-Y', '+Z', '-Z'], index=0)
+acceleration_face = 'Completing Axis'
 
 # --- Show CubeSat with Orientation ---
 # st.markdown("### CubeSat Orientation Preview")
@@ -62,6 +62,7 @@ if st.button("Run Simulation"):
             size_u=size_u,
             nadir_condition=nadir_condition,
             nadir_face=nadir_face,
+            velocity_face=velocity_face, 
             pitch_deg=pitch_deg,
             yaw_deg=yaw_deg,
             roll_deg=roll_deg,
