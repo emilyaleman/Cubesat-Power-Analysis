@@ -183,7 +183,7 @@ class Satellite:
 class PowerAnalyzer:
     SOLAR_CONSTANT = 1367
 
-    def __init__(self, satellite, orbit, RAAN_deg, sun_vector, nadir_condition, nadir_face, pitch_deg=0, yaw_deg=0, roll_deg=0):
+    def __init__(self, satellite, orbit, RAAN_deg, sun_vector, nadir_condition, nadir_face, velocity_face, pitch_deg=0, yaw_deg=0, roll_deg=0):
         self.sat = satellite
         self.orbit = orbit
         self.inclination = orbit.inclination
@@ -200,33 +200,30 @@ class PowerAnalyzer:
             R_rsn = construct_rotation_from_rsn(nadir_face, velocity_face)
         else:
             R_rsn = np.identity(3)
-        R_total = R_attitude @ R_rsn
-
+        
         # Attitude rotation matrices
         pitch = radians(pitch_deg)
         yaw = radians(yaw_deg)
         roll = radians(roll_deg)
-
+        
         R_pitch = np.array([
             [1, 0, 0],
             [0, cos(pitch), -sin(pitch)],
-            [0, sin(pitch),  cos(pitch)]
-        ])
-
+            [0, sin(pitch),  cos(pitch)]])
+        
         R_yaw = np.array([
             [cos(yaw), 0, sin(yaw)],
             [0, 1, 0],
-            [-sin(yaw), 0, cos(yaw)]
-        ])
-
+            [-sin(yaw), 0, cos(yaw)]])
+        
         R_roll = np.array([
             [cos(roll), -sin(roll), 0],
             [sin(roll),  cos(roll), 0],
-            [0, 0, 1]
-        ])
-
+            [0, 0, 1]])
+        
         R_attitude = R_roll @ R_yaw @ R_pitch
-        R_total = R_attitude @ R_nadir
+        R_total = R_attitude @ R_rsn  # ✅ CORRECTED
+
 
         self.rotated_normals = {face: R_total @ vec for face, vec in self.base_normals.items()}
 
