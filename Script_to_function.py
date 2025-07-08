@@ -60,7 +60,7 @@ def run_simulation(
     times = np.linspace(0, num_orbits * orbit.period, 500 * num_orbits) #why a step size so large?
     total_powers = []
     powers_faces = {face: [] for face in panel_faces}
-    ra_values, dec_values, beta_values = [], [], []
+    latitudes, longitudes, beta_values = [], [], []
 
     eclipse = orbit.eclipse_window(sun_vector)
     if eclipse:
