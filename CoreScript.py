@@ -363,6 +363,7 @@ def main():
         orbit=orbit,
         RAAN_deg=RAAN_deg,
         sun_vector=sun_vector,
+        velocity_face=velocity_face,
         nadir_condition=nadir_condition,
         nadir_face=nadir_face,
         pitch_deg=pitch_deg,
