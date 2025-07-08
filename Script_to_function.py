@@ -7,6 +7,7 @@ from CoreScript import SunPosition
 from CoreScript import Orbit
 from CoreScript import Satellite
 from CoreScript import PowerAnalyzer
+from CoreScript import compute_lat_lon
 
 
 def run_simulation(
@@ -74,8 +75,10 @@ def run_simulation(
         xs, ys, zs = sun_vec_t
         alpha_t = atan2(ys, xs)
         delta_t = np.arcsin(zs)
-        ra_values.append(degrees(alpha_t) % 360)
-        dec_values.append(degrees(delta_t))
+        lat, lon = compute_lat_lon(orbit, JD, radians(RAAN_deg), orbit.inclination, t)
+        latitudes.append(lat)
+        longitudes.append(lon)
+
 
         sun_lvlh_t = SunPosition.inertial_to_LVLH(sun_vec_t, orbit.inclination, radians(RAAN_deg), (t / orbit.period) * 2 * pi)
         beta_t = np.arcsin(sun_lvlh_t[2])
@@ -115,11 +118,10 @@ def run_simulation(
 
     # 9. Create output DataFrame
     df = pd.DataFrame({
-        "Time (min)": times / 60,
-        "Total Power (W)": total_powers,
-        "Beta (deg)": beta_values,
-        "RA (deg)": ra_values,
-        "DEC (deg)": dec_values
-    })
+    "Time (min)": times / 60,
+    "Total Power (W)": total_powers,
+    "Beta (deg)": beta_values,
+    "Latitude (deg)": latitudes,
+    "Longitude (deg)": longitudes})
 
     return fig, fig2, df
