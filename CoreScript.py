@@ -223,27 +223,27 @@ class PowerAnalyzer:
             [0, 0, 1]])
         
         R_attitude = R_roll @ R_pitch @ R_yaw
-        R_total = R_attitude @ R_rsn.T  
+        self.R_total = R_attitude @ R_rsn.T  
 
 
         self.rotated_normals = {face: R_total @ vec for face, vec in self.base_normals.items()}
 
-    def _rotation_matrix_from_vectors(self, v1, v2):
-        v1 = v1 / np.linalg.norm(v1)
-        v2 = v2 / np.linalg.norm(v2)
-        cross = np.cross(v1, v2)
-        dot = np.dot(v1, v2)
-        if np.allclose(dot, 1.0):
-            return np.identity(3)
-        if np.allclose(dot, -1.0):
-            axis = np.array([1, 0, 0]) if not np.allclose(v1, [1, 0, 0]) else np.array([0, 1, 0])
-            return self._rotation_matrix_from_vectors(v1, -axis) @ self._rotation_matrix_from_vectors(-axis, v2)
-        skew = np.array([
-            [0, -cross[2], cross[1]],
-            [cross[2], 0, -cross[0]],
-            [-cross[1], cross[0], 0]
-        ])
-        return np.identity(3) + skew + skew @ skew * ((1 - dot) / (np.linalg.norm(cross) ** 2))
+    # def _rotation_matrix_from_vectors(self, v1, v2):
+    #     v1 = v1 / np.linalg.norm(v1)
+    #     v2 = v2 / np.linalg.norm(v2)
+    #     cross = np.cross(v1, v2)
+    #     dot = np.dot(v1, v2)
+    #     if np.allclose(dot, 1.0):
+    #         return np.identity(3)
+    #     if np.allclose(dot, -1.0):
+    #         axis = np.array([1, 0, 0]) if not np.allclose(v1, [1, 0, 0]) else np.array([0, 1, 0])
+    #         return self._rotation_matrix_from_vectors(v1, -axis) @ self._rotation_matrix_from_vectors(-axis, v2)
+    #     skew = np.array([
+    #         [0, -cross[2], cross[1]],
+    #         [cross[2], 0, -cross[0]],
+    #         [-cross[1], cross[0], 0]
+    #     ])
+    #     return np.identity(3) + skew + skew @ skew * ((1 - dot) / (np.linalg.norm(cross) ** 2))
 
     def sun_vector_in_LVLH(self, t):   #multiplied by R_rsn to get body 
         M = (t / self.orbit.period) * 2 * np.pi
