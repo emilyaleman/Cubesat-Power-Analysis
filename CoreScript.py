@@ -245,7 +245,7 @@ class PowerAnalyzer:
         ])
         return np.identity(3) + skew + skew @ skew * ((1 - dot) / (np.linalg.norm(cross) ** 2))
 
-    def sun_vector_in_LVLH_to_body(self, t):   #multiplied by R_rsn to get body 
+    def sun_vector_in_LVLH(self, t):   #multiplied by R_rsn to get body 
         M = (t / self.orbit.period) * 2 * np.pi
         return SunPosition.inertial_to_LVLH(self.sun_vector_inertial, self.inclination, self.RAAN, M) @ R_rsn
 
