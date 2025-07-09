@@ -209,21 +209,21 @@ class PowerAnalyzer:
         
         R_pitch = np.array([
             [1, 0, 0],
-            [0, cos(pitch), -sin(pitch)],
-            [0, sin(pitch),  cos(pitch)]])
+            [0, cos(pitch), sin(pitch)],
+            [0, -sin(pitch),  cos(pitch)]])
         
         R_yaw = np.array([
-            [cos(yaw), 0, sin(yaw)],
+            [cos(yaw), 0, -sin(yaw)],
             [0, 1, 0],
-            [-sin(yaw), 0, cos(yaw)]])
+            [sin(yaw), 0, cos(yaw)]])
         
         R_roll = np.array([
-            [cos(roll), -sin(roll), 0],
-            [sin(roll),  cos(roll), 0],
+            [cos(roll), sin(roll), 0],
+            [-sin(roll),  cos(roll), 0],
             [0, 0, 1]])
         
-        R_attitude = R_roll @ R_yaw @ R_pitch
-        R_total = R_attitude @ R_rsn  
+        R_attitude = R_roll @ R_pitch @ R_yaw
+        R_total = R_attitude @ R_rsn.T  
 
 
         self.rotated_normals = {face: R_total @ vec for face, vec in self.base_normals.items()}
