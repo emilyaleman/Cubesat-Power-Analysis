@@ -26,7 +26,7 @@ def construct_rotation_from_rsn(nadir_face, velocity_face):
     b_n = np.cross(b_r, b_s)
     body_matrix = np.column_stack((b_r, b_s, b_n))
 
-    return RSN_matrix @ body_matrix.T
+    return RSN_matrix @ body_matrix
 
 
 # Julian Date Converter
@@ -223,7 +223,7 @@ class PowerAnalyzer:
             [0, 0, 1]])
         
         R_attitude = R_roll @ R_yaw @ R_pitch
-        R_total = R_attitude @ R_rsn  # ✅ CORRECTED
+        R_total = R_attitude @ R_rsn  
 
 
         self.rotated_normals = {face: R_total @ vec for face, vec in self.base_normals.items()}
