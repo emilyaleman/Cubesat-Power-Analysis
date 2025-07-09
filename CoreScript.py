@@ -158,6 +158,19 @@ class Orbit:
         if self.is_sso:
             print(f"Computed SSO inclination: {degrees(self.inclination):.2f} degrees")
         return (start, end)
+
+    def is_in_eclipse(self, sat_pos, sun_vector):
+        Re = self.Re
+        h = self.altitude
+        R_sat = sat_pos / np.linalg.norm(sat_pos)  # Unit vector from Earth to satellite
+        R_sun = sun_vector / np.linalg.norm(sun_vector)  # Unit vector from Earth to Sun
+    
+        cos_theta = np.dot(R_sat, R_sun)
+        angle = acos(np.clip(cos_theta, -1, 1))  # Angle between satellite and Sun
+    
+        rho = np.arcsin(Re / (Re + h))  # Earth's angular radius from satellite
+        return angle < rho  # In Earth's shadow if Sun is blocked
+
     
 
 # Satellite Class
@@ -388,7 +401,10 @@ def main():
         sun_vector_lvlh_t = SunPosition.inertial_to_LVLH(sun_vector_inertial_t, orbit.inclination, radians(RAAN_deg), (t / orbit.period) * 2 * pi)
         beta_t = np.arcsin(sun_vector_lvlh_t[2])
         beta_values.append(degrees(beta_t))
-        in_eclipse = eclipse and (eclipse_start <= t <= eclipse_end)
+       
+        sat_pos_t = satellite_eci_position(orbit, radians(RAAN_deg), orbit.inclination, (t / orbit.period) * 2 * pi)
+        in_eclipse = orbit.is_in_eclipse(sat_pos_t, sun_vector_inertial_t)
+
         if in_eclipse:
             total_powers.append(0)
             for face in panel_faces:
