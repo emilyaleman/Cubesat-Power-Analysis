@@ -89,7 +89,7 @@ class SunPosition:
             [sin(mean_anomaly_rad),  cos(mean_anomaly_rad), 0],
             [0, 0, 1]
         ])
-        C_inertial_to_orbital = C_theta @ C_i @ C_Omega
+        C_inertial_to_orbital = C_Omega @ C_i @ C_theta
         C_inertial_to_LVLH = C_inertial_to_orbital.T
         return C_inertial_to_LVLH @ sun_vector_inertial
 
