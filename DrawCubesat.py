@@ -73,11 +73,13 @@ def draw_cubesat(size_u=3, nadir_face='+Z', velocity_face='+X', acceleration_fac
         direction = direction_vectors[face]
         direction = direction / np.linalg.norm(direction)
 
-        arrow_start = center
-        arrow_end = center + direction * 0.7  # scale for arrow length
+        # Ensure arrow points OUTWARD from the CubeSat
+        arrow_length = 0.7
+        arrow_vector = direction * arrow_length
 
-        ax.quiver(*arrow_start, *direction, length=0.7, color=color, arrow_length_ratio=0.2)
-        ax.text(*arrow_end, label, color=color, ha='center', fontsize=10)
+        ax.quiver(*center, *arrow_vector, color=color, arrow_length_ratio=0.2)
+        ax.text(*(center + arrow_vector * 1.1), label, color=color, ha='center', fontsize=10)
+
 
     # Format axes
     ax.set_xlim([-0.5, 1.5])
