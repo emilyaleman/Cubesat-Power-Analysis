@@ -73,30 +73,38 @@ def run_simulation(
 
     # 6. Loop and simulate
     for t in times:
-        JD_t = JD + (t / 86400.0)
-        sun_vec_t, alpha_deg = SunPosition.sun_vector_in_inertial(JD_t)
-        xs, ys, zs = sun_vec_t
-        alpha_t = atan2(ys, xs)
-        delta_t = np.arcsin(zs)
-        lat, lon = compute_lat_lon(orbit, JD, radians(RAAN_deg), orbit.inclination, t)
-        latitudes.append(lat)
-        longitudes.append(lon)
+    JD_t = JD + (t / 86400.0)
+    sun_vec_t, alpha_deg = SunPosition.sun_vector_in_inertial(JD_t)
 
+    # Compute current satellite position in ECI
+    M_rad = (t / orbit.period) * 2 * pi
+    sat_pos_t = satellite_eci_position(orbit, radians(RAAN_deg), orbit.inclination, M_rad)
 
-        sun_lvlh_t = SunPosition.inertial_to_LVLH(sun_vec_t, orbit.inclination, radians(RAAN_deg), (t / orbit.period) * 2 * pi)
-        beta_t = np.arcsin(sun_lvlh_t[2])
-        beta_values.append(degrees(beta_t))
+    # Dynamic eclipse check
+    in_eclipse = orbit.is_in_eclipse(sat_pos_t, sun_vec_t)
 
-        in_eclipse = eclipse and (eclipse_start <= t <= eclipse_end)
-        if in_eclipse:
-            total_powers.append(0)
-            for face in panel_faces:
-                powers_faces[face].append(0)
-        else:
-            total_power, power_per_face = pa.compute_power(t)
-            total_powers.append(total_power)
-            for face in panel_faces:
-                powers_faces[face].append(power_per_face[face])
+    # Compute beta angle
+    sun_lvlh_t = SunPosition.inertial_to_LVLH(sun_vec_t, orbit.inclination, radians(RAAN_deg), M_rad)
+    beta_t = np.arcsin(sun_lvlh_t[2])
+    beta_values.append(degrees(beta_t))
+
+    # Compute latitude and longitude
+    lat, lon = compute_lat_lon(orbit, JD, radians(RAAN_deg), orbit.inclination, t)
+    latitudes.append(lat)
+    longitudes.append(lon)
+
+    # Power computation
+    if in_eclipse:
+        total_powers.append(0)
+        for face in panel_faces:
+            powers_faces[face].append(0)
+    else:
+        total_power, power_per_face = pa.compute_power(t)
+        total_powers.append(total_power)
+        for face in panel_faces:
+            powers_faces[face].append(power_per_face[face])
+
+           
 
     # 7. Plot total power
     fig, ax = plt.subplots()
