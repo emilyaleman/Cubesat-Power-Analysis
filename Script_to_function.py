@@ -9,6 +9,7 @@ from CoreScript import Satellite
 from CoreScript import PowerAnalyzer
 from CoreScript import compute_lat_lon
 from CoreScript import construct_rotation_from_rsn 
+from CoreScript import satellite_eci_position
 
 
 def run_simulation(
