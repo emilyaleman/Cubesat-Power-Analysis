@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 from Script_to_function import run_simulation
 
+from PIL import Image
+
+logo = Image.open("SFS27792.png")
+st.image(logo, width=150)
 st.title("CubeSat Power Simulation")
 
 # --- Inputs ---
