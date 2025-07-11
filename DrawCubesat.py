@@ -64,7 +64,7 @@ def draw_cubesat(size_u=3, nadir_face='+Z', velocity_face='+X'):
         arrow_length = 0.7
         arrow_vector = direction * arrow_length
 
-        ax.quiver(*center, *arrow_vector, color=color, arrow_length_ratio=0.2)
+        ax.quiver(*center, *arrow_vector, color=color, arrow_length_ratio=2)
         ax.text(*(center + arrow_vector * 1.1), label, color=color, fontsize=10, ha='center')
 
     # Format plot
