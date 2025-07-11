@@ -1,7 +1,7 @@
 import plotly.graph_objects as go
 import numpy as np
 
-def draw_cubesat_plotly(nadir_face='+Z', velocity_face='+X'):
+def draw_cubesat(nadir_face='+Z', velocity_face='+X'):
     # Define 1x1x1 cube vertices
     x = [0, 1]
     y = [0, 1]
