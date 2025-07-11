@@ -9,7 +9,7 @@ from PIL import Image
 #logo = Image.open("SFS27907.png") #white logo
 logo = Image.open("SFS27908.png") #UPM + IDR logo
 
-st.image(logo, width=320)
+st.image(logo, width=500)
 
 st.title("CubeSat Power Simulation")
 
