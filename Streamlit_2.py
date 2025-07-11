@@ -5,9 +5,9 @@ from DrawCubesat import draw_cubesat
 from plotly_cubesat import draw_interactive_cubesat 
 from PIL import Image
 
-#logo = Image.open("SFS27792.png") #grey logo
-logo = Image.open("SFS27907.png") #white logo
-st.image(logo, width=300)
+logo = Image.open("SFS27792.png") #grey logo
+#logo = Image.open("SFS27907.png") #white logo
+st.image(logo, width=320)
 
 st.title("CubeSat Power Simulation")
 
