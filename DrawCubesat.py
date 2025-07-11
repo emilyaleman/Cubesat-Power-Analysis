@@ -66,7 +66,7 @@
 
 import matplotlib.pyplot as plt
 
-def draw_orientation(nadir_face='+Z', velocity_face='+X'):
+def draw_cubesat(nadir_face='+Z', velocity_face='+X'):
     fig, ax = plt.subplots(figsize=(6, 6))
 
     # Draw cube outline
