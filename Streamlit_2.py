@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from Script_to_function import run_simulation
-from DrawCubesat import draw_cubesat 
+#from DrawCubesat import draw_cubesat 
 from plotly_cubesat import draw_interactive_cubesat 
 from PIL import Image
 
