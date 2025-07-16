@@ -175,13 +175,18 @@ class Orbit:
 
 # Satellite Class
 class Satellite:
-    def __init__(self, size_u, panel_faces, occupancy, efficiency):
+    def __init__(self, size_u, panel_faces, occupancy, efficiency, panel_areas=None):
         self.size_u = size_u
         self.panel_faces = panel_faces
         self.occupancy = occupancy
         self.efficiency = efficiency
-        self.base_size = 0.1
-        self.panel_areas = self._calculate_panel_areas()
+        self.base_size = 0.1  # 10 cm
+
+        if panel_areas:
+            # Use user-defined panel areas
+            self.panel_areas = {face: panel_areas[face] * self.occupancy for face in panel_faces}
+        else:
+            self.panel_areas = self._calculate_panel_areas()
 
     def _calculate_panel_areas(self):
         x, y, z = self.base_size, self.base_size, self.base_size * self.size_u
@@ -321,6 +326,11 @@ def main():
     roll_deg  = float(input("Enter roll angle in degrees (+Z axis, default 0): ") or "0")
 
     panel_faces = input("Enter panel faces (e.g. +Z,+X,-X,+Y): ").replace(" ", "").split(",")
+    panel_areas = {}
+    print("Enter panel area for each face in cm^2 (for deployable panels or body panels):")
+    for face in panel_faces:
+        area_cm2 = float(input(f"Area for {face}: "))
+        panel_areas[face] = area_cm2 / 10000  # convert to m^2
     occupancy = float(input("Enter panel occupancy (0-1): "))
     efficiency = float(input("Enter panel efficiency (0-1): "))
     altitude_km = float(input("Enter orbit altitude (km): "))
@@ -352,7 +362,7 @@ def main():
         orbit = Orbit(altitude_km, inclination_deg, is_sso=False)
 
         # Create the Satellite and PowerAnalyzer
-    sat = Satellite(size_u, panel_faces, occupancy, efficiency)
+    sat = Satellite(size_u, panel_faces, occupancy, efficiency, panel_areas)
     pa = PowerAnalyzer(
         satellite=sat,
         orbit=orbit,
