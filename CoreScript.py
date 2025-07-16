@@ -419,7 +419,7 @@ def main():
                 powers_faces[face].append(power_per_face[face])
 
     average_power = np.mean(total_powers)
-    plt.axhline(y=average_power, color='red', linestyle='--', label=f'Average Power = {average_power:.2f} W')
+   
 
         # Plot total power
     plt.figure(figsize=(10, 4))
@@ -445,11 +445,10 @@ def main():
     plt.legend()
     plt.grid(True, linestyle='--', alpha=0.6)
     plt.tight_layout()
-    plt.savefig("power_per_face_plot.png", dpi=300)
+    plt.savefig("power_per_face_plot.pdf", dpi=300)
     plt.show()
 
-
-
+    
         # Resultados en CSV
     import csv
     output_filename = "simulation_output.csv"
