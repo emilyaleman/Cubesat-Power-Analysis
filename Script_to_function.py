@@ -22,7 +22,7 @@ def run_simulation(
     yaw_deg,
     roll_deg,
     panel_faces,
-    panel_areas=None
+    panel_areas=None,
     occupancy,
     efficiency,
     altitude_km,
