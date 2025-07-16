@@ -1,8 +1,8 @@
 import plotly.graph_objects as go
 import numpy as np
 
-def draw_interactive_cubesat(size_u=3, nadir_face='+Z'):
-    # Dimensions of the CubeSat
+def draw_interactive_cubesat(size_u=3, nadir_face='+Z', velocity_face='+X'):
+    # CubeSat dimensions
     width, depth, height = 1, 1, size_u
 
     # Define cube vertices
@@ -14,11 +14,10 @@ def draw_interactive_cubesat(size_u=3, nadir_face='+Z'):
     f = [1, 0, height]
     g = [1, 1, height]
     h = [0, 1, height]
-
     vertices = np.array([a, b, c, d, e, f, g, h])
     x, y, z = vertices.T
 
-    # Define faces (triangulated)
+    # Face triangles
     faces = {
         '+Z': [[4, 5, 6], [4, 6, 7]],
         '-Z': [[0, 1, 2], [0, 2, 3]],
@@ -28,28 +27,12 @@ def draw_interactive_cubesat(size_u=3, nadir_face='+Z'):
         '-Y': [[0, 1, 5], [0, 5, 4]]
     }
 
-    face_colors = {
-        '+Z': 'lightblue', '-Z': 'lightgray',
-        '+X': 'lightgreen', '-X': 'orange',
-        '+Y': 'violet', '-Y': 'pink'
-    }
+    # All gray by default
+    face_colors = {face: 'lightgray' for face in faces}
+    face_colors[nadir_face] = 'red'
+    face_colors[velocity_face] = 'navy'
 
-    # Create Plotly figure
-    fig = go.Figure()
-
-    # Add faces to figure
-    for face, triangles in faces.items():
-        i, j, k = zip(*triangles)
-        fig.add_trace(go.Mesh3d(
-            x=x, y=y, z=z,
-            i=i, j=j, k=k,
-            color=face_colors[face] if face != nadir_face else 'red',
-            opacity=0.5,
-            name=face,
-            showscale=False
-        ))
-
-    # Define face centers and directions
+    # Face centers and outward direction vectors
     face_centers = {
         '+Z': [0.5, 0.5, height],
         '-Z': [0.5, 0.5, 0],
@@ -60,32 +43,67 @@ def draw_interactive_cubesat(size_u=3, nadir_face='+Z'):
     }
 
     directions = {
-        '+Z': [0, 0, -0.5],
-        '-Z': [0, 0, 0.5],
-        '+X': [-0.5, 0, 0],
-        '-X': [0.5, 0, 0],
-        '+Y': [0, -0.5, 0],
-        '-Y': [0, 0.5, 0]
+        '+Z': [0, 0, 1],
+        '-Z': [0, 0, -1],
+        '+X': [1, 0, 0],
+        '-X': [-1, 0, 0],
+        '+Y': [0, 1, 0],
+        '-Y': [0, -1, 0]
     }
 
-    # Draw Nadir vector
-    if nadir_face in face_centers:
-        start = np.array(face_centers[nadir_face])
-        vector = np.array(directions[nadir_face])
-        end = start + vector
+    # --- Rotation matrix to align nadir_face to -Z ---
+    def get_rotation_matrix(from_vec, to_vec):
+        from_vec = from_vec / np.linalg.norm(from_vec)
+        to_vec = to_vec / np.linalg.norm(to_vec)
+        v = np.cross(from_vec, to_vec)
+        c = np.dot(from_vec, to_vec)
+        s = np.linalg.norm(v)
+        if s == 0:
+            return np.identity(3)
+        kmat = np.array([[0, -v[2], v[1]],
+                         [v[2], 0, -v[0]],
+                         [-v[1], v[0], 0]])
+        return np.identity(3) + kmat + (kmat @ kmat) * ((1 - c) / (s ** 2))
+
+    rot_mat = get_rotation_matrix(np.array(directions[nadir_face]), np.array([0, 0, -1]))
+
+    # Rotate all vertices and centers
+    rotated_vertices = vertices @ rot_mat.T
+    x, y, z = rotated_vertices.T
+    rotated_face_centers = {f: (np.array(c) @ rot_mat.T) for f, c in face_centers.items()}
+    rotated_directions = {f: (np.array(d) @ rot_mat.T) for f, d in directions.items()}
+
+    # --- Plotting ---
+    fig = go.Figure()
+
+    for face, triangles in faces.items():
+        i, j, k = zip(*triangles)
+        fig.add_trace(go.Mesh3d(
+            x=x, y=y, z=z,
+            i=i, j=j, k=k,
+            color=face_colors[face],
+            opacity=0.6,
+            name=face,
+            showscale=False
+        ))
+
+    # Arrows: Nadir
+    for label, face in [('Nadir', nadir_face), ('Velocity', velocity_face)]:
+        start = rotated_face_centers[face]
+        vec = rotated_directions[face]
+        end = start + 0.6 * vec
         fig.add_trace(go.Scatter3d(
             x=[start[0], end[0]],
             y=[start[1], end[1]],
             z=[start[2], end[2]],
             mode='lines+text',
             line=dict(color='white', width=6),
-            text=['', '→ Nadir'],
-            textposition='top center',
+            text=['', f'→ {label}'],
+            textposition='middle right',
             textfont=dict(size=14),
             showlegend=False
         ))
 
-    # Format figure
     fig.update_layout(
         scene=dict(
             xaxis=dict(visible=False),
@@ -99,5 +117,3 @@ def draw_interactive_cubesat(size_u=3, nadir_face='+Z'):
     )
 
     return fig
-
-
