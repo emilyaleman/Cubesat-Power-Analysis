@@ -63,7 +63,7 @@ def run_simulation(
     )
 
     # 5. Prepare time array and initialize storage
-
+    samples_per_orbit = 2000
     times = np.linspace(0, num_orbits * orbit.period, samples_per_orbit * num_orbits) 
     total_powers = []
     powers_faces = {face: [] for face in panel_faces}
