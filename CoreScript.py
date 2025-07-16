@@ -378,8 +378,11 @@ def main():
     else:
         eclipse_start, eclipse_end = None, None
 
+    
+    #Samples and timesteps per orbit
     num_orbits = int(input("Enter number of orbits to simulate: "))
-    times = np.linspace(0, num_orbits * orbit.period, 500 * num_orbits)
+    samples_per_orbit = 2000  
+    times = np.linspace(0, num_orbits * orbit.period, samples_per_orbit * num_orbits)
     total_powers = []
     powers_faces = {face: [] for face in panel_faces}
     lat_values = []
@@ -419,27 +422,36 @@ def main():
     plt.axhline(y=average_power, color='red', linestyle='--', label=f'Average Power = {average_power:.2f} W')
 
         # Plot total power
-    plt.plot(times / 60, total_powers)
-    plt.title("Total Power vs Time (Nadir Pointing, 1 Orbit)")
-    plt.xlabel("Time (minutes)")
-    plt.ylabel("Power (W)")
-    plt.grid()
+    plt.figure(figsize=(10, 4))
+    plt.plot(times / 60, total_powers, linewidth=1.5, label="Total Power")
+    plt.axhline(y=average_power, color='red', linestyle='--', label=f'Avg = {average_power:.2f} W')
+    plt.title("Total Power vs Time", fontsize=14)
+    plt.xlabel("Time [min]", fontsize=12)
+    plt.ylabel("Power [W]", fontsize=12)
+    plt.legend()
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.tight_layout()
+    plt.savefig("total_power_plot.png", dpi=300)
     plt.show()
 
 
         # Plot power per face
+    plt.figure(figsize=(10, 4))
     for face in panel_faces:
-        plt.plot(times / 60, powers_faces[face], label=f'{face}')
-    plt.title("Power per Face vs Time (Nadir Pointing, 1 Orbit)")
-    plt.xlabel("Time (minutes)")
-    plt.ylabel("Power (W)")
+        plt.plot(times / 60, powers_faces[face], label=f'{face}', linewidth=1.2)
+    plt.title("Power Per Face vs Time", fontsize=14)
+    plt.xlabel("Time [min]", fontsize=12)
+    plt.ylabel("Power [W]", fontsize=12)
     plt.legend()
-    plt.grid()
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.tight_layout()
+    plt.savefig("power_per_face_plot.png", dpi=300)
     plt.show()
 
-    import csv
+
 
         # Resultados en CSV
+    import csv
     output_filename = "simulation_output.csv"
 
     with open(output_filename, mode='w', newline='') as file:
