@@ -47,6 +47,12 @@ st.plotly_chart(fig, use_container_width=True, velocity_face=velocity_face)
 
 # --- Solar Panel Properties ---
 panel_faces = st.multiselect("Panel faces", ['+X', '-X', '+Y', '-Y', '+Z', '-Z'], default=['+Z'])
+panel_areas = {}
+st.markdown("#### Panel Area Input (cm²)")
+for face in panel_faces:
+    area_cm2 = st.number_input(f"Area of {face} face (cm²)", min_value=0.0, value=100.0)
+    panel_areas[face] = area_cm2 / 10000  # convert to m²
+
 occupancy = st.slider("Panel occupancy", 0.0, 1.0, 0.5)
 efficiency = st.slider("Panel efficiency", 0.0, 1.0, 0.6)
 
