@@ -43,6 +43,7 @@ roll_deg = st.number_input("Roll angle (degrees)", value=0.0)
 #st.plotly_chart(fig, use_container_width=True)   
 
 fig = draw_cubesat(size_u=size_u, nadir_face=nadir_face, velocity_face=velocity_face)
+st.pyplot(fig)
 
 # --- Solar Panel Properties ---
 panel_faces = st.multiselect("Panel faces", ['+X', '-X', '+Y', '-Y', '+Z', '-Z'], default=['+Z'])
