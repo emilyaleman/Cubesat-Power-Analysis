@@ -5,7 +5,7 @@ from DrawCubesat import draw_cubesat
 #from plotly_cubesat import draw_interactive_cubesat 
 from PIL import Image
 
-#logo = Image.open("SFS27792.png") #grey logo
+#logo = Image.open("SFS27792.png") #grey log0
 #logo = Image.open("SFS27907.png") #white logo
 logo = Image.open("SFS27908.png") #UPM + IDR logo
 
@@ -34,7 +34,7 @@ acceleration_face = 'Completing Axis'
 # st.pyplot(fig3d)
 
 #fig = draw_interactive_cubesat(size_u=size_u, nadir_face=nadir_face)
-fig = draw_cubesat(size_u=size_u, nadir_face=nadir_face)
+fig = draw_cubesat(size_u=size_u, nadir_face=nadir_face, velocity_face=velocity_face)
 st.plotly_chart(fig, use_container_width=True)
 
 # --- Attitude Angles ---
