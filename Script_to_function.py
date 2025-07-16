@@ -22,6 +22,7 @@ def run_simulation(
     yaw_deg,
     roll_deg,
     panel_faces,
+    panel_areas=None
     occupancy,
     efficiency,
     altitude_km,
@@ -46,7 +47,7 @@ def run_simulation(
         orbit = Orbit(altitude_km, inclination_deg, is_sso=False)
 
     # 4. Initialize Satellite and PowerAnalyzer
-    sat = Satellite(size_u, panel_faces, occupancy, efficiency)
+    sat = Satellite(size_u, panel_faces, occupancy, efficiency, panel_areas)
     pa = PowerAnalyzer(
         satellite=sat,
         orbit=orbit,
@@ -57,11 +58,13 @@ def run_simulation(
         velocity_face=velocity_face,
         pitch_deg=pitch_deg,
         yaw_deg=yaw_deg,
+        samples_per_orbit = 2000
         roll_deg=roll_deg
     )
 
     # 5. Prepare time array and initialize storage
-    times = np.linspace(0, num_orbits * orbit.period, 500 * num_orbits) #why a step size so large?
+
+    times = np.linspace(0, num_orbits * orbit.period, samples_per_orbit * num_orbits) 
     total_powers = []
     powers_faces = {face: [] for face in panel_faces}
     latitudes, longitudes, beta_values = [], [], []
