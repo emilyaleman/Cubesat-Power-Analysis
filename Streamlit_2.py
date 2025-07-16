@@ -23,6 +23,12 @@ nadir_face = st.selectbox("Which face points to Nadir?", ['+X', '-X', '+Y', '-Y'
 velocity_face = st.selectbox("Which face points in the velocity direction?", ['+X', '-X', '+Y', '-Y', '+Z', '-Z'], index=0)
 acceleration_face = 'Completing Axis'
 
+# --- Attitude Angles ---
+pitch_deg = st.number_input("Pitch angle (degrees)", value=0.0)
+yaw_deg = st.number_input("Yaw angle (degrees)", value=0.0)
+roll_deg = st.number_input("Roll angle (degrees)", value=0.0)
+
+
 # --- Show CubeSat with Orientation ---
 # st.markdown("### CubeSat Orientation Preview")
 # fig3d = draw_cubesat(
@@ -34,14 +40,9 @@ acceleration_face = 'Completing Axis'
 # st.pyplot(fig3d)
 
 #fig = draw_interactive_cubesat(size_u=size_u, nadir_face=nadir_face)
-#st.plotly_chart(fig, use_container_width=True)   #this is not usable
+#st.plotly_chart(fig, use_container_width=True)   
 
 fig = draw_cubesat(size_u=size_u, nadir_face=nadir_face, velocity_face=velocity_face)
-
-# --- Attitude Angles ---
-pitch_deg = st.number_input("Pitch angle (degrees)", value=0.0)
-yaw_deg = st.number_input("Yaw angle (degrees)", value=0.0)
-roll_deg = st.number_input("Roll angle (degrees)", value=0.0)
 
 # --- Solar Panel Properties ---
 panel_faces = st.multiselect("Panel faces", ['+X', '-X', '+Y', '-Y', '+Z', '-Z'], default=['+Z'])
