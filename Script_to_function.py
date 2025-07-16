@@ -58,7 +58,7 @@ def run_simulation(
         velocity_face=velocity_face,
         pitch_deg=pitch_deg,
         yaw_deg=yaw_deg,
-        samples_per_orbit = 2000
+        samples_per_orbit = 2000, 
         roll_deg=roll_deg
     )
 
