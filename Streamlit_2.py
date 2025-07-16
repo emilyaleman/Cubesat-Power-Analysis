@@ -35,7 +35,7 @@ acceleration_face = 'Completing Axis'
 
 #fig = draw_interactive_cubesat(size_u=size_u, nadir_face=nadir_face)
 fig = draw_cubesat(size_u=size_u, nadir_face=nadir_face, velocity_face=velocity_face)
-st.plotly_chart(fig, use_container_width=True)
+#st.plotly_chart(fig, use_container_width=True)   #this is not usable...
 
 # --- Attitude Angles ---
 pitch_deg = st.number_input("Pitch angle (degrees)", value=0.0)
