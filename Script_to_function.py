@@ -22,14 +22,14 @@ def run_simulation(
     yaw_deg,
     roll_deg,
     panel_faces,
-    panel_areas=None,
     occupancy,
     efficiency,
     altitude_km,
     inclination_deg,
     date_str,
     LTDN,
-    num_orbits
+    num_orbits, 
+    panel_areas=None
 ):
     # 1. Convert date to Julian Date
     year, month, day = date_str.split("-")
