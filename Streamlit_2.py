@@ -90,7 +90,8 @@ if st.button("Run Simulation"):
             inclination_deg=inclination_deg,
             date_str=date_str,
             LTDN=LTDN,
-            num_orbits=int(num_orbits)
+            num_orbits=int(num_orbits), 
+            panel_areas= panel_areas
         )
 
         st.pyplot(fig)
