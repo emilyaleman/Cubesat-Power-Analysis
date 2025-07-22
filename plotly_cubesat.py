@@ -51,6 +51,15 @@ def draw_interactive_cubesat(size_u=3, nadir_face='+Z', velocity_face='+X'):
         '-Y': [0, -1, 0]
     }
 
+     # Handle case when user has not specified orientation
+    if nadir_face is None or velocity_face is None:
+        rot_mat = np.identity(3)
+    else:
+        rot_mat = get_rotation_matrix(
+            np.array(directions[nadir_face]),
+            np.array(directions[velocity_face])
+        )
+
     # --- Rotation matrix to align nadir_face to -Z ---
     def get_rotation_matrix(from_vec, to_vec):
         from_vec = from_vec / np.linalg.norm(from_vec)
