@@ -92,22 +92,27 @@ def draw_interactive_cubesat(size_u=3, nadir_face='+Z', velocity_face='+X'):
             showscale=False
         ))
 
-    # Arrows: Nadir
     for label, face in [('Nadir', nadir_face), ('Velocity', velocity_face)]:
-        start = rotated_face_centers[face]
-        vec = rotated_directions[face]
-        end = start + 0.6 * vec
-        fig.add_trace(go.Scatter3d(
-            x=[start[0], end[0]],
-            y=[start[1], end[1]],
-            z=[start[2], end[2]],
-            mode='lines+text',
-            line=dict(color='white', width=6),
-            text=['', f'→ {label}'],
-            textposition='middle right',
-            textfont=dict(size=14),
-            showlegend=False
-        ))
+    if face is None:
+        continue  # Skip drawing arrow if no face is defined
+    if face not in rotated_face_centers or face not in rotated_directions:
+        continue  # Avoid crash if something is misaligned
+
+    start = rotated_face_centers[face]
+    vec = rotated_directions[face]
+    end = start + 0.6 * vec
+    fig.add_trace(go.Scatter3d(
+        x=[start[0], end[0]],
+        y=[start[1], end[1]],
+        z=[start[2], end[2]],
+        mode='lines+text',
+        line=dict(color='white', width=6),
+        text=['', f'→ {label}'],
+        textposition='middle right',
+        textfont=dict(size=14),
+        showlegend=False
+    ))
+
 
     fig.update_layout(
         scene=dict(
