@@ -51,16 +51,7 @@ def draw_interactive_cubesat(size_u=3, nadir_face='+Z', velocity_face='+X'):
         '-Y': [0, -1, 0]
     }
 
-     # Handle case when user has not specified orientation
-    if nadir_face is None or velocity_face is None:
-        rot_mat = np.identity(3)
-    else:
-        rot_mat = get_rotation_matrix(
-            np.array(directions[nadir_face]),
-            np.array(directions[velocity_face])
-        )
-
-    # --- Rotation matrix to align nadir_face to -Z ---
+    # --- Rotation matrix helper ---
     def get_rotation_matrix(from_vec, to_vec):
         from_vec = from_vec / np.linalg.norm(from_vec)
         to_vec = to_vec / np.linalg.norm(to_vec)
@@ -73,8 +64,13 @@ def draw_interactive_cubesat(size_u=3, nadir_face='+Z', velocity_face='+X'):
                          [v[2], 0, -v[0]],
                          [-v[1], v[0], 0]])
         return np.identity(3) + kmat + (kmat @ kmat) * ((1 - c) / (s ** 2))
+    
+    # --- Compute rotation only if nadir_face is specified ---
+    if nadir_face is not None:
+        rot_mat = get_rotation_matrix(np.array(directions[nadir_face]), np.array([0, 0, -1]))
+    else:
+        rot_mat = np.identity(3)
 
-    rot_mat = get_rotation_matrix(np.array(directions[nadir_face]), np.array([0, 0, -1]))
 
     # Rotate all vertices and centers
     rotated_vertices = vertices @ rot_mat.T
