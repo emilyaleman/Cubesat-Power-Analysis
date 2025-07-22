@@ -1,4 +1,3 @@
-
 import numpy as np
 import matplotlib.pyplot as plt
 from math import sin, cos, radians, degrees, pi, sqrt, acos, atan2
@@ -331,6 +330,8 @@ def main():
     for face in panel_faces:
         area_cm2 = float(input(f"Area for {face}: "))
         panel_areas[face] = area_cm2 / 10000  # convert to m^2
+
+    print(panel_areas)
     occupancy = float(input("Enter panel occupancy (0-1): "))
     efficiency = float(input("Enter panel efficiency (0-1): "))
     altitude_km = float(input("Enter orbit altitude (km): "))
@@ -427,8 +428,12 @@ def main():
             total_powers.append(total_power)
             for face in panel_faces:
                 powers_faces[face].append(power_per_face[face])
+                #print(power_per_face[face])
+                #print(np.mean(powers_faces[face]))
 
     average_power = np.mean(total_powers)
+    #average_power_per_face = {face: np.mean(powers_faces[face]) for face in panel_faces}
+    
    
 
         # Plot total power
@@ -444,6 +449,7 @@ def main():
     plt.savefig("total_power_plot.png", dpi=300)
     plt.show()
 
+    print("I am here")
 
         # Plot power per face
     plt.figure(figsize=(10, 4))
@@ -457,6 +463,8 @@ def main():
     plt.tight_layout()
     plt.savefig("power_per_face_plot.pdf", dpi=300)
     plt.show()
+
+    print("I am here too")
 
     
         # Resultados en CSV
